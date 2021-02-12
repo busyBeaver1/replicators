@@ -178,10 +178,10 @@ def go(world, x, y): # запустить на шаг микроба с поля
         
         elif gene == 13: # узнать возраст
             cell[7] = cell[(cell[7] + (cell[6] > cell[(cell[7] + 1) % pr.genomeLength + nParams]) + 2) % pr.genomeLength + nParams]
-
+        
         elif gene == 14: # записать в свою память
             cell[nParams + pr.genomeLength + cell[(cell[7] + 1) % pr.genomeLength + nParams] % pr.privateMemory] = cell[(cell[7] + 2) % pr.genomeLength + nParams] % 2
-            cell[7] = (cell[7] + 3) % pr.genomeLength + nParams
+            cell[7] = (cell[7] + 3) % pr.genomeLength
         
         elif gene == 15: # записать в публичную память
             m = nParams + pr.genomeLength + pr.privateMemory + cell[(cell[7] + 1) % pr.genomeLength + nParams] % pr.publicMemory
@@ -191,7 +191,7 @@ def go(world, x, y): # запустить на шаг микроба с поля
                 if 0 <= x + x1 < pr.width and 0 <= y + y1 < pr.height:
                     if world[x + x1, y + y1, 0] == 1:
                         world[x + x1, y + y1, m] = v
-            cell[7] = cell[(cell[7] + 3) % pr.genomeLength + nParams]
+            cell[7] = (cell[7] + 3) % pr.genomeLength
         
         elif gene == 16: # прочитать из памяти
             cell[7] = cell[(cell[7] + 2 + cell[nParams + pr.genomeLength + cell[(cell[7] + 1) % pr.genomeLength + nParams] % (pr.privateMemory + pr.publicMemory)]) % pr.genomeLength + nParams]
