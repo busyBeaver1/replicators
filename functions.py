@@ -3,30 +3,30 @@ import numba, numpy
 from random import randrange, random
 
 nParams = 13
-nGenes = 16
+nCommands = 17
 
 dirs = numpy.array([(0, -1, 0), (1, -1, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0), (-1, 1, 0), (-1, 0, 0), (-1, -1, 0)])
 
 
 @numba.jit
-def step(world): # запустить мир на шаг
+def step(world): # запустить мир на шаг | do 1 timestep
     n = 0
     e = 0
     world[..., 8] = 0
-    fx = randrange(pr.width)
-    i = fx + pr.width
-    while i != fx:
-        i = (i + pr.prime) % pr.width
-        fy = randrange(pr.height)
-        j = fy + pr.height
-        while j != fy:
-            j = (j + pr.prime) % pr.height
-            if world[i, j, 0] == 1:
-                n += 1
-                e += world[i, j, 6]
-                go(world, i, j)
+    s = randrange(pr.width * pr.height)
+    shift = randrange(pr.width * pr.height)
+    i = s + pr.width * pr.height
+    while i != s:
+        i = (i + pr.prime) % (pr.width * pr.height)
+        x = (i + shift) % pr.width
+        y = ((i + shift) % (pr.width * pr.height)) // pr.width
+        if world[x, y, 0] == 1:
+            n += 1
+            e += world[x, y, 6]
+            go(world, x, y)
     return (n / (world.shape[0] * world.shape[1]), e // n)
     #      (доля заполнения мира                 , средний возраст)
+    #      (world filling percentage             , average age)
 
 _year = 0
 for season in pr.seasons:
@@ -45,17 +45,18 @@ def getWeather(time):
             w = (pr.seasons[i][1] * (t + pr.seasons[i][3] + pr.seasons[i][4] - time) + pr.seasons[(i + 1) % len(pr.seasons)][1] * (time - t - pr.seasons[i][3])) / pr.seasons[i][4]
             return (l, w, pr.seasons[s % len(pr.seasons)][2])
         t += pr.seasons[i][3] + pr.seasons[i][4]
-    #      (свет, влажность, название сезона)
+    # возврат: (свет, влажность, название сезона)
+    # returning: (light, water, season name)
 
 
 @numba.jit
-def go(world, x, y): # запустить на шаг микроба с поля world по координатам (x, y)
+def go(world, x, y): # запустить на шаг микроба с поля world по координатам (x, y) | do timestep of one microbe on cell (x, y)
     cell = world[x, y]
     
     if cell[8]: return
     cell[8] = 1
     
-    cell[4] -= cell[3] * pr.kTimeEnergi // pr.maxWater
+    cell[4] -= cell[3] * pr.kTimeEnergy // pr.maxWater
     
     if control(world, x, y) == -1: return
     
@@ -63,25 +64,26 @@ def go(world, x, y): # запустить на шаг микроба с поля
     cell[6] += 1
     
     add = cell[2]
-    if cell[5] + add > pr.cellMaxMinerals: add = pr.cellMaxMinerals - cell[5]
+    if cell[5] + add > pr.microbeMaxMinerals: add = pr.microbeMaxMinerals - cell[5]
     cell[5] += add
     cell[2] -= add
 
     for n in range(pr.commandsPerStep):
-        gene = cell[cell[7] + nParams] % nGenes
+        gene = cell[cell[7] + nParams] % nCommands
         
-        if gene == 0: # безусловный переход (изменить УТК)
+        # комманды (гены) | commands (genes) :
+        if gene == 0: # безусловный переход (изменить УТК) | just move program counter
             cell[7] = cell[(cell[7] + 1) % pr.genomeLength + nParams]
         
-        elif gene == 1: # повернуться на угол относительно бывшего направления
+        elif gene == 1: # повернуться на угол относительно бывшего направления | rotate to an angle from previous rotration
             cell[9] = (cell[9] + cell[(cell[7] + 1) % pr.genomeLength + nParams]) % dirs.shape[0]
             cell[7] = (cell[7] + 2) % pr.genomeLength
         
-        elif gene == 2: # повернуться на угол относительно вертикали
+        elif gene == 2: # повернуться на угол относительно вертикали | rotate to an angle from vertical direction
             cell[9] = cell[(cell[7] + 1) % pr.genomeLength + nParams] % dirs.shape[0]
             cell[7] = (cell[7] + 2) % pr.genomeLength
         
-        elif gene == 3: # передвинуться на один шаг
+        elif gene == 3: # передвинуться на один шаг | move by 1 step
             d = dirs[(cell[9] + cell[(cell[7] + 1) % pr.genomeLength + nParams]) % dirs.shape[0]]
             x1 = x + d[0]; y1 = y + d[1]
             if 0 <= x1 < pr.width and 0 <= y1 < pr.height:
@@ -99,39 +101,39 @@ def go(world, x, y): # запустить на шаг микроба с поля
             else:
                 cell[7] = cell[(cell[7] + 2) % pr.genomeLength + nParams]
         
-        elif gene == 4: # фотосинтез
+        elif gene == 4: # фотосинтез | photosynthesis
             cell[4] += cell[1]
             cell[7] = (cell[7] + 1) % pr.genomeLength
             control(world, x, y)
             break
         
-        elif gene == 5: # минералы в энергию
+        elif gene == 5: # минералы в энергию | turn minerals to energy
             cell[4] += cell[5]
             cell[5] = 0
             cell[7] = (cell[7] + 1) % pr.genomeLength
             control(world, x, y)
             break
         
-        elif gene == 6: # добыть минералы
+        elif gene == 6: # добыть минералы | get all minerals from cell
             add = cell[2]
-            if cell[5] + add > pr.cellMaxMinerals: add = pr.cellMaxMinerals - cell[5]
+            if cell[5] + add > pr.microbeMaxMinerals: add = pr.microbeMaxMinerals - cell[5]
             cell[5] += add
             cell[2] -= add
             cell[7] = (cell[7] + 1) % pr.genomeLength
             break
         
-        elif gene == 7: # сосчитать пустые клетки вокруг
+        elif gene == 7: # сосчитать пустые клетки вокруг | count empty cells around
             n = 0
             for d in dirs:
                 if 0 <= x + d[0] < pr.width and 0 <= y + d[1] < pr.height:
                     n += (world[x, y, 0] == 0)
-            cell[7] = cell[(cell[7] + (n >= cell[(cell[7] + 1) % pr.genomeLength + nParams] % dirs.shape[0]) + 1) % pr.genomeLength + nParams]
+            cell[7] = cell[(cell[7] + 2 + (n >= cell[(cell[7] + 1) % pr.genomeLength + nParams] % (dirs.shape[0] + 1))) % pr.genomeLength + nParams]
         
-        elif gene == 8: # посмотреть, что в клетке по определённому направлению
+        elif gene == 8: # посмотреть, что в клетке по определённому направлению | see, what is on cell at an defined direction
             d = dirs[(cell[9] + cell[(cell[7] + 1) % pr.genomeLength + nParams]) % dirs.shape[0]]
             x1 = x + d[0]; y1 = y + d[1]
-            n = 2
             if (not 0 <= x1 < pr.width) or (not 0 <= y1 < pr.height): n = 2
+            elif world[x1, y1, 0] == 3: n = 2
             elif world[x1, y1, 0] == 0: n = 3
             elif world[x1, y1, 0] == 1:
                 dif = 0
@@ -139,9 +141,10 @@ def go(world, x, y): # запустить на шаг микроба с поля
                     dif += world[x1, y1, nParams + g] != cell[nParams + g]
                 n = 4 + (dif > pr.relativeMaxDif)
             elif world[x1, y1, 0] == 2: n = 6
+            else: raise ValueError
             cell[7] = cell[(cell[7] + n) % pr.genomeLength + nParams]
         
-        elif gene == 9: # съесть то, что в клетке по определённому направлению
+        elif gene == 9: # съесть то, что в клетке по определённому направлению | eat that what is on cell at an defined direction
             d = dirs[(cell[9] + cell[(cell[7] + 1) % pr.genomeLength + nParams]) % dirs.shape[0]]
             x1 = x + d[0]; y1 = y + d[1]
             if 0 <= x1 < pr.width and 0 <= y1 < pr.height:
@@ -156,7 +159,7 @@ def go(world, x, y): # запустить на шаг микроба с поля
                         cell[4] += world[x1, y1, 4] - pr.attackEnergy
                         if pr.eatMinerals:
                             cell[5] += world[x1, y1, 5]
-                            if cell[5] > pr.cellMaxMinerals: cell[5] = pr.cellMaxMinerals
+                            if cell[5] > pr.microbeMaxMinerals: cell[5] = pr.microbeMaxMinerals
                         control(world, x, y)
                         world[x1, y1, 0] = 0
                     else:
@@ -167,23 +170,23 @@ def go(world, x, y): # запустить на шаг микроба с поля
                 cell[7] = cell[(cell[7] + 2) % pr.genomeLength + nParams]
             break
         
-        elif gene == 10: # узнать свою энергию
-            cell[7] = cell[(cell[7] + (cell[4] * pr.genomeLength > cell[(cell[7] + 1) % pr.genomeLength + nParams] * pr.cellMaxEnergy) + 2) % pr.genomeLength + nParams]
+        elif gene == 10: # узнать свою энергию | get my energy
+            cell[7] = cell[(cell[7] + 2 + (cell[4] * pr.genomeLength > cell[(cell[7] + 1) % pr.genomeLength + nParams] * pr.microbeMaxEnergy)) % pr.genomeLength + nParams]
         
-        elif gene == 11: # узнать свет
-            cell[7] = cell[(cell[7] + (cell[1] * pr.genomeLength > cell[(cell[7] + 1) % pr.genomeLength + nParams] * pr.maxLight) + 2) % pr.genomeLength + nParams]
+        elif gene == 11: # узнать свет | get the light level
+            cell[7] = cell[(cell[7] + 2 + (cell[1] * pr.genomeLength > cell[(cell[7] + 1) % pr.genomeLength + nParams] * pr.maxLight)) % pr.genomeLength + nParams]
         
-        elif gene == 12: # узнать влажность
-            cell[7] = cell[(cell[7] + (cell[3] * pr.genomeLength > cell[(cell[7] + 1) % pr.genomeLength + nParams] * pr.maxWater) + 2) % pr.genomeLength + nParams]
+        elif gene == 12: # узнать влажность | get the water level
+            cell[7] = cell[(cell[7] + 2 + (cell[3] * pr.genomeLength > cell[(cell[7] + 1) % pr.genomeLength + nParams] * pr.maxWater)) % pr.genomeLength + nParams]
         
-        elif gene == 13: # узнать возраст
-            cell[7] = cell[(cell[7] + (cell[6] > cell[(cell[7] + 1) % pr.genomeLength + nParams]) + 2) % pr.genomeLength + nParams]
+        elif gene == 13: # узнать возраст | get my age
+            cell[7] = cell[(cell[7] + 2 + (cell[6] > cell[(cell[7] + 1) % pr.genomeLength + nParams])) % pr.genomeLength + nParams]
         
-        elif gene == 14: # записать в свою память
+        elif gene == 14: # записать в "свою" память | write to "own" memory
             cell[nParams + pr.genomeLength + cell[(cell[7] + 1) % pr.genomeLength + nParams] % pr.privateMemory] = cell[(cell[7] + 2) % pr.genomeLength + nParams] % 2
             cell[7] = (cell[7] + 3) % pr.genomeLength
         
-        elif gene == 15: # записать в публичную память
+        elif gene == 15: # записать в "публичную" память | write to "public" memory
             m = nParams + pr.genomeLength + pr.privateMemory + cell[(cell[7] + 1) % pr.genomeLength + nParams] % pr.publicMemory
             v = cell[(cell[7] + 2) % pr.genomeLength + nParams] % 2
             cell[m] = v
@@ -193,7 +196,7 @@ def go(world, x, y): # запустить на шаг микроба с поля
                         world[x + x1, y + y1, m] = v
             cell[7] = (cell[7] + 3) % pr.genomeLength
         
-        elif gene == 16: # прочитать из памяти
+        elif gene == 16: # прочитать из памяти | read from memory
             cell[7] = cell[(cell[7] + 2 + cell[nParams + pr.genomeLength + cell[(cell[7] + 1) % pr.genomeLength + nParams] % (pr.privateMemory + pr.publicMemory)]) % pr.genomeLength + nParams]
 
 
@@ -202,8 +205,8 @@ def control(world, x, y):
     if world[x, y, 4] < 0:
         world[x, y, 0] = 2
         return -1
-    if world[x, y, 4] > pr.cellMaxEnergy:
-        world[x, y, 4] = pr.cellMaxEnergy
+    if world[x, y, 4] > pr.microbeMaxEnergy:
+        world[x, y, 4] = pr.microbeMaxEnergy
         return replicate(world, x, y)
     return 0
 
@@ -226,8 +229,10 @@ def replicate(world, x, y):
             world[c[0], c[1], i + nParams] = randrange(pr.genomeLength)
             n = randrange(3)
             world[c[0], c[1], 10 + n] += randrange(pr.colorChange * 2 + 1) - pr.colorChange
-            if world[c[0], c[1], 10 + n] < 128: world[c[0], c[1], 10 + n] = 128
             if world[c[0], c[1], 10 + n] > 255: world[c[0], c[1], 10 + n] = 255
+            s = world[c[0], c[1], 10:13].sum()
+            if s < 384:
+                world[c[0], c[1], 10 + n] += 384 - s
         else:
             world[c[0], c[1], i + nParams] = world[x, y, i + nParams]
     return 1
@@ -255,7 +260,7 @@ def light(world, k):
             if world[i, j, 0] == 0:
                 light *= pr.lightTransp
             else:
-                light *= pr.lightTranspCell
+                light *= pr.lightTranspMicrobe
 
 
 @numba.jit
