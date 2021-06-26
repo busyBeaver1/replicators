@@ -29,6 +29,7 @@ else:
 screen = numpy.ndarray((pr.height + pr.infoHeight, pr.width, 3), dtype='uint8')
 pygame.init()
 pygame.display.set_caption('replicators')
+pygame.display.set_icon(pygame.image.load('icon.png'))
 display = pygame.display.set_mode((pr.width, pr.height + pr.infoHeight))
 
 def addRandCells(n):
