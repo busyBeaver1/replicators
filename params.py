@@ -41,7 +41,7 @@ eatMinerals = False # если один микроб съел другого, п
 prime = 1000000000039
 nWorld = -1 # номер запуска программы (для имён файлов). Если меньше 0 - то используется следующий после предидущего запуска.
             # world number (for file names). If less than 0 - next number after previous world number
-readFrom = (1, -1) # откуда считать состояние мира, первое число - номер запуска (если меньше 0, то созадать новый мир), второе число - номер сохранённого состояния (если меньше ноля, то последнее)
+readFrom = (-1, -1) # откуда считать состояние мира, первое число - номер запуска (если меньше 0, то созадать новый мир), второе число - номер сохранённого состояния (если меньше ноля, то последнее)
                     # where to get start world state, first number - saved world number (if less than 0 - make new world), second number - saved state number (if less than 0 - last saved state)
 stepsPerSave = 144000 # через сколько шагов сохранять состояние (если меньше 0, то не сохранять вообще) | how many steps will be done before saving world state (if less than 0 - no saves)
 
