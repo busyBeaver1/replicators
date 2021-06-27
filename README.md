@@ -1,4 +1,4 @@
-This is a simulation of evolution. Detailed description is in Replicators.docx file (it will be added later) and here: https://www.youtube.com/playlist?list=PLOAbO557-ElocHFFmgSa2SwQOpSmzVUoN
+This is a simulation of evolution. Detailed description is in Replicators_description_eng.docx file (it will be added later) or in Replicators_description_rus.docx file (it is written in Russian) and here: https://www.youtube.com/playlist?list=PLOAbO557-ElocHFFmgSa2SwQOpSmzVUoN
 
 The program runs on Python 3.
 For the program to work, you need to install the OpenCV, Pygame and Numba libraries.
@@ -24,7 +24,7 @@ If the state files take up too much memory, then they can be deleted from the "c
 
 ############################################################
 
-Это симуляция зволюции. Подробное описание в файле Репликаторы.docx и здесь: https://www.youtube.com/playlist?list=PLOAbO557-ElocHFFmgSa2SwQOpSmzVUoN
+Это симуляция зволюции. Подробное описание в файле Replicators_description_rus.docx и здесь: https://www.youtube.com/playlist?list=PLOAbO557-ElocHFFmgSa2SwQOpSmzVUoN
 
 Программа работает на Python 3.
 Для работы программы необходимо установить библиотеки OpenCV, Pygame и Numba.
