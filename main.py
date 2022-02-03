@@ -1,4 +1,4 @@
-import numpy, os
+import numpy, os, cv2
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = ''
 from time import time
 import params as pr, writer, pygame
@@ -30,7 +30,7 @@ screen = numpy.ndarray((pr.height + pr.infoHeight, pr.width, 3), dtype='uint8')
 pygame.init()
 pygame.display.set_caption('replicators')
 pygame.display.set_icon(pygame.image.load('icon.png'))
-display = pygame.display.set_mode((pr.width, pr.height + pr.infoHeight))
+display = pygame.display.set_mode((int(pr.width * pr.viewScale), int((pr.height + pr.infoHeight) * pr.viewScale)),)
 
 def addRandCells(n):
     for i in range(n):
@@ -113,7 +113,8 @@ if __name__ == '__main__':
             writer.view(world, screen)
             writer.info(screen, i / pr.stepsPerVideoFrame / pr.fps, fps, ret[0], ret[1], w[0], w[1], w[2], i)
 
-            surf = pygame.surfarray.make_surface(screen.transpose(1, 0, 2)[..., (2, 1, 0)])
+            screen_resized = cv2.resize(screen, (int(screen.shape[1] * pr.viewScale), int(screen.shape[0] * pr.viewScale)), interpolation=cv2.INTER_CUBIC)
+            surf = pygame.surfarray.make_surface(screen_resized.transpose(1, 0, 2)[..., (2, 1, 0)])
             display.blit(surf, (0, 0))
             pygame.display.update()
             pass

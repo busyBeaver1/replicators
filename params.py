@@ -45,9 +45,10 @@ readFrom = (-1, -1) # откуда считать состояние мира, �
                     # where to get start world state, first number - saved world number (if less than 0 - make new world), second number - saved state number (if less than 0 - last saved state)
 stepsPerSave = 144000 # через сколько шагов сохранять состояние (если меньше 0, то не сохранять вообще) | how many steps will be done before saving world state (if less than 0 - no saves)
 
+viewScale = 1.3 # маштаб предпросмотра (во сколько раз будет растянуто изображение) | preview scale
 fps = 30. # fps видео | video fps
 videoCodec = 'DIVX' # Название кодека видео для передачи в функцию OpenCV cv2.VideoWriter_fourcc | name of video codec to give it to OpenCV's cv2.VideoWriter_fourcc function
-videoFormat = 'avi' # формат видео | vidoe format
+videoFormat = 'avi' # формат видео | video format
 stepsPerVideoFrame = 16 # через сколько шагов кадр записывается в видео | how many steps will be done before writing new frame to video file
 stepsPerFrame = 1 # через сколько шагов кадр бодет нарисован | how many steps will be done before drawing new frame
 typeMicrobeVisual = 1 # способ отображения микробов, 1 или 2 | method of viewing microbes, 1 or 2
