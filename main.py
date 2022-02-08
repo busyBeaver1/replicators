@@ -1,4 +1,4 @@
-import numpy, os, cv2
+import numpy, os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = ''
 from time import time
 import params as pr, writer, pygame
@@ -113,26 +113,24 @@ if __name__ == '__main__':
             writer.view(world, screen)
             writer.info(screen, i / pr.stepsPerVideoFrame / pr.fps, fps, ret[0], ret[1], w[0], w[1], w[2], i)
 
-            screen_resized = cv2.resize(screen, (int(screen.shape[1] * pr.viewScale), int(screen.shape[0] * pr.viewScale)), interpolation=cv2.INTER_CUBIC)
-            surf = pygame.surfarray.make_surface(screen_resized.transpose(1, 0, 2)[..., (2, 1, 0)])
+            surf = pygame.surfarray.make_surface(writer.scale_image(screen, pr.viewScale).transpose(1, 0, 2)[..., (2, 1, 0)])
             display.blit(surf, (0, 0))
             pygame.display.update()
             pass
 
         if i % pr.stepsPerVideoFrame == 0:
-            writer.videowriter.write(screen)
+            writer.videowriter.write(writer.scale_image(screen, pr.videoScale))
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 stop()
                 exit(0)
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if event.pos[1] < pr.height:
-                    print(info(*event.pos))
+                if int(event.pos[1] / pr.viewScale) < pr.height:
+                    print(info(int(event.pos[0] / pr.viewScale), int(event.pos[1] / pr.viewScale)))
                 else:
                     screenshot()
 
-        
         i += 1
         fps = 1. / (time() - tik)
 

@@ -35,7 +35,7 @@ def read(v):
 
 def start():
     global videowriter
-    videowriter = cv2.VideoWriter(os.path.dirname(os.path.abspath(__file__)) + '/output/world-' + str(nWorld) + '_video-' + str(nState) + '.' + pr.videoFormat, cv2.VideoWriter_fourcc(*pr.videoCodec), pr.fps, (pr.width, pr.height + pr.infoHeight))
+    videowriter = cv2.VideoWriter(os.path.dirname(os.path.abspath(__file__)) + '/output/world-' + str(nWorld) + '_video-' + str(nState) + '.' + pr.videoFormat, cv2.VideoWriter_fourcc(*pr.videoCodec), pr.fps, (int(pr.width * pr.videoScale), int((pr.height + pr.infoHeight) * pr.videoScale)))
     # если здесь произойдёт ошибка, попробуйте изменить параметр videoCodec на 'H264' или на какой-то другой кодек. | if some error occurred here, try changing videoCodec param to 'H264' or to some other codec.
 
 
@@ -93,3 +93,15 @@ def save(world, i):
     f = open(os.path.dirname(os.path.abspath(__file__)) + '/cache/N' + str(nWorld), 'w')
     f.write(str(nState))
     f.close()
+
+
+def scale_image(img, scale):
+    if scale == 1:
+        return img
+    elif int(scale) == scale:
+        return img.repeat(int(scale), axis=0).repeat(int(scale), axis=1)
+    elif int(1 / scale) == 1 / scale:
+        scale2 = int(1 / scale)
+        return (numpy.sum([[img[x::scale2, y::scale2].astype(int) for y in range(scale2)] for x in range(scale2)], axis=(0, 1)) // (scale2 * scale2)).astype('uint8')
+    else:
+        return cv2.resize(img, (int(img.shape[1] * scale), int(img.shape[0] * scale)), interpolation=cv2.INTER_CUBIC)

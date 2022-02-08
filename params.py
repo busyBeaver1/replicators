@@ -45,9 +45,12 @@ readFrom = (-1, -1) # откуда считать состояние мира, �
                     # where to get start world state, first number - saved world number (if less than 0 - make new world), second number - saved state number (if less than 0 - last saved state)
 stepsPerSave = 144000 # через сколько шагов сохранять состояние (если меньше 0, то не сохранять вообще) | how many steps will be done before saving world state (if less than 0 - no saves)
 
-viewScale = 1. # маштаб предпросмотра (во сколько раз будет растянуто изображение) | preview scale
+viewScale = 1. # маштаб предпросмотра (во сколько раз будет растянуто изображение) используйте целые числа или 1/(целое число) для меньшей нагрузки на процессор
+               # preview scale. Use integer numbers (like 1., 2. or 3.) or 1/integer (like .5, 1/3 or .25) for less processor utilisation
 fps = 30. # fps видео | video fps
-videoCodec = 'DIVX' # Название кодека видео для передачи в функцию OpenCV cv2.VideoWriter_fourcc | name of video codec to give it to OpenCV's cv2.VideoWriter_fourcc function
+videoScale = 2. # растянуть пиксели видео во столько раз для лучшего качества. Работает как viewScale | scale video pixels up by videoScale times for better quality. Works like viewScale.
+videoCodec = 'DIVX' # Название кодека видео для передачи в функцию OpenCV cv2.VideoWriter_fourcc. H264 лучше сжимает но не всегда работает. Может не работать если opencv установлено через pip
+                    # name of video codec to give it to OpenCV's cv2.VideoWriter_fourcc function. H264 works better if it works. But it may not work at all if opencv is installed through pip
 videoFormat = 'avi' # формат видео | video format
 stepsPerVideoFrame = 16 # через сколько шагов кадр записывается в видео | how many steps will be done before writing new frame to video file
 stepsPerFrame = 1 # через сколько шагов кадр бодет нарисован | how many steps will be done before drawing new frame
