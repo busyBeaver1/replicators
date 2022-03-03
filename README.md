@@ -18,7 +18,7 @@ Maps are located in the "maps" folder. The name of the map file to use is specif
 
 How saving works:
 Each program launch (each world) has a number. It affects the names of the saved files. For example, the video file name is arranged as follows: world-< launch number>_video-< video piece number>.avi. The number of world is specified in the settings (the nWorld parameter).
-Saving occurs automatically after the number of steps specified in the settings (the stepsPerSave parameter, if less than zero, then do not save), and after stopping program. The state of the world saves to the "cache" folder and a file with a piece of video releases, after which the recording of the next piece begins.
+Saving occurs automatically after the number of steps specified in the settings (the stepsPerSave parameter, if less than zero, then do not save), and after stopping program. The state of the world is being saved to the "cache" folder and a file with a piece of video is being released, after which the recording of the next piece begins.
 To use the saved state, change the "readFrom" parameter. The first number in it is the number of the world of which the state was saved (if this number is less than zero, the state is not read, but a new world is created). The second number is the number of state to be read (the piece of video from which you need to start recalculating). If the second number is less than zero, then the last saved state of that world is taken.
 If the state files take up too much memory, then they can be deleted from the "cache" folder (all files except N) the world number is stored in N, so do not delete it, otherwise there will be an error.
 
